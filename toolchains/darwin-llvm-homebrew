@@ -1,0 +1,8 @@
+set(CMAKE_SYSTEM_NAME Darwin)
+
+set(tools /opt/homebrew/opt/llvm/bin)
+set(CMAKE_C_COMPILER ${tools}/clang)
+set(CMAKE_CXX_COMPILER ${tools}/clang++)
+
+# Use LLVM's latest libc++ instead of Apple's outdated
+set(LDFLAGS "-L/opt/homebrew/opt/llvm/lib/c++ -L/opt/homebrew/opt/llvm/lib -lunwind")

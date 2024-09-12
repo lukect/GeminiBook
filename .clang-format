@@ -1,0 +1,14 @@
+BasedOnStyle: Microsoft
+
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+
+BreakBeforeBraces: Attach
+AlwaysBreakTemplateDeclarations: Yes
+
+PointerAlignment: Left
+ReferenceAlignment: Pointer
