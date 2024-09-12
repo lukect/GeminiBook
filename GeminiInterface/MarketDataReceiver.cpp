@@ -1,5 +1,7 @@
 #include "MarketDataReceiver.h"
 
+#include <regex>
+
 static constexpr std::string_view baseURL = "wss://api.gemini.com/v1/marketdata/";
 static constexpr std::string_view params = "?trades=false";
 
@@ -12,6 +14,8 @@ static std::string buildURL(const std::string& symbol) {
 Gemini::MarketDataReceiver::MarketDataReceiver(std::string symbol, const std::uint32_t levels, std::ostream& output)
 	: output(output), symbol(std::move(symbol)), url(buildURL(this->symbol)), levels(levels) {
 	this->output.setf(std::ios::fixed);
+	if (std::regex_match(this->symbol, std::regex{".*USD", std::regex_constants::icase}))
+		this->pricePrecision = 2;
 
 	reconn_setting_t reconnection;
 	reconn_setting_init(&reconnection);
@@ -42,7 +46,8 @@ void Gemini::MarketDataReceiver::out() const {
 	for (uint32_t lvl = 0; lvl < levels; ++lvl) {
 		if (bid != bids.end()) {
 			const auto& [price, quantity] = *bid;
-			output << std::setprecision(2) << price << " " << std::setw(16) << std::setprecision(9) << quantity;
+			output << std::setprecision(pricePrecision) << price << " " << std::setw(16) << std::setprecision(9)
+				   << quantity;
 			++bid;
 		} else {
 			output << "NO BID";
@@ -52,7 +57,8 @@ void Gemini::MarketDataReceiver::out() const {
 
 		if (ask != asks.end()) {
 			const auto& [price, quantity] = *ask;
-			output << std::setprecision(2) << price << " " << std::setw(16) << std::setprecision(9) << quantity;
+			output << std::setprecision(pricePrecision) << price << " " << std::setw(16) << std::setprecision(9)
+				   << quantity;
 			++ask;
 		} else {
 			output << "NO ASK";

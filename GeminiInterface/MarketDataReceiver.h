@@ -22,6 +22,7 @@ protected:
 	OrderBook::List<OrderBook::Side::BID, double> bids{};
 	OrderBook::List<OrderBook::Side::ASK, double> asks{};
 	uint32_t levels;
+	int pricePrecision = 9;
 
 	void out() const;
 	void receiveData(const std::string& data);
