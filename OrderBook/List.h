@@ -1,6 +1,7 @@
 #ifndef ORDERBOOKSIDE_H
 #define ORDERBOOKSIDE_H
 
+#include <cstdint>
 #include <forward_list>
 #include <optional>
 
@@ -32,18 +33,20 @@ public:
 		return levels.cend();
 	}
 
-	bool levelUpdate(const Precision& price, const Precision& quantity) {
+	// Returns level N where update/insert/delete occurred, or 0 if nothing changed.
+	std::uint32_t levelUpdate(const Precision& price, const Precision& quantity) {
 		if (quantity <= 0) {
 			return levelDelete(price);
 		}
 
 		auto bitr = levels.before_begin(), itr = levels.begin();
+		std::uint32_t level = 1;
 		while (itr != levels.end()) {
 			if constexpr (Side == Side::BID) {
 				if (price >= itr->price) {
 					if (price <= itr->price) { // `<=` is better than `==`, it should match first condition if true.
 						itr->quantity = quantity;
-						return true;
+						return level;
 					}
 					break;
 				}
@@ -51,42 +54,46 @@ public:
 				if (price <= itr->price) {
 					if (price >= itr->price) { // `<=` is better than `==`, it should match first condition if true.
 						itr->quantity = quantity;
-						return true;
+						return level;
 					}
 					break;
 				}
 			}
 
+			++level;
 			bitr = itr++;
 		}
 
 		levels.emplace_after(bitr, price, quantity);
-		return true;
+		return level;
 	}
 
-	bool levelDelete(const Precision& price) {
+	// Returns level N deleted, or 0 if nothing was deleted.
+	std::uint32_t levelDelete(const Precision& price) {
 		auto bitr = levels.before_begin(), itr = levels.begin();
+		std::uint32_t level = 1;
 		while (itr != levels.end()) {
 			if constexpr (Side == Side::BID) {
 				if (price >= itr->price) {
 					if (price <= itr->price) { // `<=` is better than `==`, it should match first condition if true.
-						return levels.erase_after(bitr) != levels.end() || empty();
+						return levels.erase_after(bitr) != levels.end() || empty() ? level : 0;
 					}
-					return false;
+					return 0;
 				}
 			} else {
 				if (price <= itr->price) {
 					if (price >= itr->price) { // `<=` is better than `==`, it should match first condition if true.
-						return levels.erase_after(bitr) != levels.end() || empty();
+						return levels.erase_after(bitr) != levels.end() || empty() ? level : 0;
 					}
-					return false;
+					return 0;
 				}
 			}
 
+			++level;
 			bitr = itr++;
 		}
 
-		return false;
+		return 0;
 	}
 };
 

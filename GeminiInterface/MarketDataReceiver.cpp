@@ -39,7 +39,7 @@ Gemini::MarketDataReceiver::~MarketDataReceiver() {
 
 void Gemini::MarketDataReceiver::out() const {
 	auto bid = bids.begin(), ask = asks.begin();
-	for (uint8_t lvl = 0; lvl < levels; ++lvl) {
+	for (uint32_t lvl = 0; lvl < levels; ++lvl) {
 		if (bid != bids.end()) {
 			const auto& [price, quantity] = *bid;
 			output << std::setprecision(2) << price << " " << std::setw(16) << std::setprecision(9) << quantity;
@@ -71,6 +71,8 @@ void Gemini::MarketDataReceiver::receiveData(const std::string& data) {
 
 	auto events = json.find_field("events").get_array();
 
+	std::uint32_t maxUpdateLevel = 0;
+
 	for (auto event : events) {
 		const double price = event.find_field("price").get_double_in_string();
 		const double quantity = event.find_field("remaining").get_double_in_string();
@@ -79,11 +81,19 @@ void Gemini::MarketDataReceiver::receiveData(const std::string& data) {
 										 : OrderBook::Side::ASK;
 
 		if (side == OrderBook::Side::BID) {
-			bids.levelUpdate(price, quantity);
+			if (auto lvl = bids.levelUpdate(price, quantity); lvl > maxUpdateLevel)
+				maxUpdateLevel = lvl;
 		} else {
-			asks.levelUpdate(price, quantity);
+			if (auto lvl = asks.levelUpdate(price, quantity); lvl > maxUpdateLevel)
+				maxUpdateLevel = lvl;
 		}
 	}
 
-	out();
+	if (maxUpdateLevel == 0) {
+		std::cerr << "ERROR: " << data << "\n" << std::endl;
+		return;
+	}
+
+	if (maxUpdateLevel <= levels)
+		out();
 }

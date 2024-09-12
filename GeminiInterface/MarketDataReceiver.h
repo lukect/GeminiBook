@@ -21,7 +21,7 @@ protected:
 	std::string url;
 	OrderBook::List<OrderBook::Side::BID, double> bids{};
 	OrderBook::List<OrderBook::Side::ASK, double> asks{};
-	uint8_t levels;
+	uint32_t levels;
 
 	void out() const;
 	void receiveData(const std::string& data);
