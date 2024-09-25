@@ -43,16 +43,16 @@ public:
 		std::uint32_t level = 1;
 		while (itr != levels.end()) {
 			if constexpr (Side == Side::BID) {
-				if (price >= itr->price) {
-					if (price <= itr->price) { // `<=` is better than `==`, it should match first condition if true.
+				if (*itr <= price) {
+					if (*itr >= price) { // `<=` is better than `==`, it should match first condition if true.
 						itr->quantity = quantity;
 						return level;
 					}
 					break;
 				}
 			} else {
-				if (price <= itr->price) {
-					if (price >= itr->price) { // `<=` is better than `==`, it should match first condition if true.
+				if (*itr >= price) {
+					if (*itr <= price) { // `<=` is better than `==`, it should match first condition if true.
 						itr->quantity = quantity;
 						return level;
 					}
