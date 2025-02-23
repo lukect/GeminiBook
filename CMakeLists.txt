@@ -21,7 +21,7 @@ include(FetchContent)
 FetchContent_Declare(
         libhv
         GIT_REPOSITORY https://github.com/ithewei/libhv.git
-        GIT_TAG 06372abe51e46f0591769ce97fdef3cc76261f59
+        GIT_TAG 4f05ec33106df4f6af14b474b61543156af25db9
 )
 option(BUILD_STATIC "Build as static" ON)
 if (BUILD_STATIC)
