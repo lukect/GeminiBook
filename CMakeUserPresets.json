@@ -31,8 +31,8 @@
       "description": "Release build using Ninja generator",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "-O3",
-        "CMAKE_C_FLAGS": "-O3"
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
+        "CMAKE_C_FLAGS": "-O3 -DNDEBUG"
       }
     }
   ],

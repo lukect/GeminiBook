@@ -70,9 +70,35 @@ void Gemini::MarketDataReceiver::out() const {
 	output << std::endl;
 }
 
+/*
+ * This function loads the JSON message into the padded re-usable buffer and opens a document iterator.
+ * The buffer is automatically resized if too small.
+ * Don't pass the document to another thread (buffer and parser are thread_local).
+ */
+static simdjson::simdjson_result<simdjson::ondemand::document> loadJsonDocument(const std::string& json) {
+	thread_local std::size_t bufferSize = 1024 * 4; // Start with 4KB.
+	thread_local std::unique_ptr jsonBuffer{std::make_unique<char[]>(bufferSize)};
+
+	const auto required =
+		json.size() +
+		simdjson::SIMDJSON_PADDING; // The padding acts as termination. We don't need to copy the null-terminator.
+
+	if (required > bufferSize) {
+		do { // Keep doubling bufferSize until enough.
+			bufferSize *= 2;
+		} while (required > bufferSize);
+		jsonBuffer = std::make_unique<char[]>(bufferSize);
+	}
+
+	strncpy(jsonBuffer.get(), json.data(), json.size());
+
+	thread_local simdjson::ondemand::parser parser{};
+
+	return parser.iterate(jsonBuffer.get(), json.size(), bufferSize);
+}
+
 void Gemini::MarketDataReceiver::receiveData(const std::string& data) {
-	const simdjson::padded_string payload{data};
-	auto doc = parser.iterate(payload);
+	auto doc = loadJsonDocument(data);
 	auto json = doc.get_object();
 
 	auto events = json.find_field("events").get_array();
